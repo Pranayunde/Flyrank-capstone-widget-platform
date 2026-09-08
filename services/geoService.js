@@ -1,104 +1,266 @@
-const https = require("https");
+/*
+|--------------------------------------------------------------------------
+| Generic JSON Fetch
+|--------------------------------------------------------------------------
+*/
+async function fetchJson(url) {
 
-function fetchJson(url) {
-  return new Promise((resolve, reject) => {
-    const request = https.get(url, (res) => {
-      let data = "";
+  const controller =
+    new AbortController();
 
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
 
-      res.on("end", () => {
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-          return reject(new Error(`HTTP ${res.statusCode}`));
+  const timeout =
+    setTimeout(
+      () => controller.abort(),
+      5000
+    );
+
+
+  try {
+
+    const response =
+      await fetch(
+        url,
+        {
+          signal:
+            controller.signal,
+
+          headers: {
+            Accept:
+              "application/json"
+          }
         }
+      );
 
-        try {
-          resolve(JSON.parse(data));
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
 
-    request.on("error", reject);
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
 
-    request.setTimeout(5000, () => {
-      request.destroy();
-      reject(new Error("Request timeout"));
-    });
-  });
+
+    return await response.json();
+
+  } catch (error) {
+
+    if (
+      error.name ===
+      "AbortError"
+    ) {
+      throw new Error(
+        "Request timeout"
+      );
+    }
+
+    throw error;
+
+  } finally {
+
+    clearTimeout(
+      timeout
+    );
+  }
 }
 
-async function getGeoFromProviderA(ip) {
-  const url = `https://ipapi.co/${ip}/json/`;
 
-  const data = await fetchJson(url);
+/*
+|--------------------------------------------------------------------------
+| Provider A
+|--------------------------------------------------------------------------
+| ip-api.com
+|--------------------------------------------------------------------------
+*/
+async function getGeoFromProviderA(
+  ip
+) {
 
-  if (!data || data.error) {
-    throw new Error("Provider A failed");
+  if (
+    process.env.GEO_PROVIDER_A_MODE ===
+    "fail"
+  ) {
+    throw new Error(
+      "Provider A simulated failure"
+    );
   }
 
+
+  const url =
+    `http://ip-api.com/json/${encodeURIComponent(
+      ip
+    )}?fields=status,country,city,message`;
+
+
+  const data =
+    await fetchJson(url);
+
+
+  if (
+    !data ||
+    data.status !==
+      "success"
+  ) {
+    throw new Error(
+      data?.message ||
+      "Provider A failed"
+    );
+  }
+
+
   return {
-    provider: "ipapi",
-    country: data.country_name || null,
-    city: data.city || null
+    provider:
+      "ip-api.com",
+
+    country:
+      data.country ||
+      null,
+
+    city:
+      data.city ||
+      null
   };
 }
 
-async function getGeoFromProviderB(ip) {
-  const url = `https://ipwho.is/${ip}`;
 
-  const data = await fetchJson(url);
+/*
+|--------------------------------------------------------------------------
+| Provider B
+|--------------------------------------------------------------------------
+| ipapi.co
+|--------------------------------------------------------------------------
+*/
+async function getGeoFromProviderB(
+  ip
+) {
 
-  if (!data || data.success === false) {
-    throw new Error("Provider B failed");
+  if (
+    process.env.GEO_PROVIDER_B_MODE ===
+    "fail"
+  ) {
+    throw new Error(
+      "Provider B simulated failure"
+    );
   }
 
+
+  const url =
+    `https://ipapi.co/${encodeURIComponent(
+      ip
+    )}/json/`;
+
+
+  const data =
+    await fetchJson(url);
+
+
+  if (
+    !data ||
+    data.error
+  ) {
+    throw new Error(
+      "Provider B failed"
+    );
+  }
+
+
   return {
-    provider: "ipwho.is",
-    country: data.country || null,
-    city: data.city || null
+    provider:
+      "ipapi.co",
+
+    country:
+      data.country_name ||
+      null,
+
+    city:
+      data.city ||
+      null
   };
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| Provider Fallback Chain
+|--------------------------------------------------------------------------
+|
+| Provider A
+|     ↓ fails
+| Provider B
+|     ↓ fails
+| Store submission without geo
+|
+|--------------------------------------------------------------------------
+*/
 async function getGeoLocation(ip) {
-  // Localhost cannot be meaningfully geolocated.
+
+  /*
+  |--------------------------------------------------------------------------
+  | Localhost has no useful public geo location.
+  |--------------------------------------------------------------------------
+  */
   if (
     !ip ||
     ip === "::1" ||
     ip === "127.0.0.1" ||
-    ip.startsWith("::ffff:127.")
+    ip.startsWith(
+      "::ffff:127."
+    )
   ) {
     return null;
   }
 
-  // Provider A
+
+  /*
+  |--------------------------------------------------------------------------
+  | Provider A
+  |--------------------------------------------------------------------------
+  */
   try {
-    return await getGeoFromProviderA(ip);
+
+    return await getGeoFromProviderA(
+      ip
+    );
+
   } catch (error) {
+
     console.error(
       "Geo Provider A failed:",
       error.message
     );
   }
 
-  // Provider B fallback
+
+  /*
+  |--------------------------------------------------------------------------
+  | Provider B
+  |--------------------------------------------------------------------------
+  */
   try {
-    return await getGeoFromProviderB(ip);
+
+    return await getGeoFromProviderB(
+      ip
+    );
+
   } catch (error) {
+
     console.error(
       "Geo Provider B failed:",
       error.message
     );
   }
 
-  // Both providers failed.
-  // Submission still succeeds.
+
+  /*
+  |--------------------------------------------------------------------------
+  | Graceful degradation
+  |--------------------------------------------------------------------------
+  */
   return null;
 }
 
+
 module.exports = {
-  getGeoLocation
+  getGeoLocation,
+  getGeoFromProviderA,
+  getGeoFromProviderB
 };

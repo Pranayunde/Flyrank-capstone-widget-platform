@@ -1,19 +1,64 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlyRank Widget Test</title>
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    FlyRank Widget Test
+  </title>
+
 </head>
+
+
 <body>
 
-  <h1>My Website</h1>
-  <p>This is an example external website.</p>
+  <h1>
+    My External Website
+  </h1>
+
+
+  <p>
+    This page represents a customer website
+    running on a different origin.
+  </p>
+
+
+  <p>
+    Customer website:
+    http://localhost:5500
+  </p>
+
+
+  <p>
+    API:
+    http://localhost:3000
+  </p>
+
+
+  <hr>
+
+
+  <!--
+  ============================================================
+  EMBEDDABLE FLYRANK WIDGET
+  ============================================================
+  -->
 
   <script
-    src="/widget.js"
-    data-widget-id="1c30f41a-216a-4c85-8f63-b238c1227ecd">
-  </script>
+    src="http://localhost:3000/widget.v1.js"
+    data-widget-id="11111111-1111-4111-8111-111111111111"
+    data-api-base-url="http://localhost:3000"
+  ></script>
+
 
 </body>
+
 </html>

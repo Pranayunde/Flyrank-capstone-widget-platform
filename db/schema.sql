@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -26,6 +28,7 @@ CREATE TABLE IF NOT EXISTS submissions (
     ip_address INET,
     country VARCHAR(100),
     city VARCHAR(100),
+    idempotency_key VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -40,3 +43,7 @@ ON submissions(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_submissions_created_at
 ON submissions(created_at);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_widget_idempotency
+ON submissions(widget_id, idempotency_key)
+WHERE idempotency_key IS NOT NULL;

@@ -1,14 +1,50 @@
-const rateLimit = require("express-rate-limit");
+const rateLimit =
+  require("express-rate-limit");
 
-const submissionRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
 
-  message: {
-    error: "Too many submissions. Please try again later."
-  }
-});
+const submissionRateLimiter =
+  rateLimit({
 
-module.exports = submissionRateLimiter;
+    /*
+    |--------------------------------------------------------------------------
+    | 1 minute window
+    |--------------------------------------------------------------------------
+    */
+    windowMs:
+      60 * 1000,
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maximum submissions per IP
+    |--------------------------------------------------------------------------
+    */
+    limit: 10,
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Standard rate-limit headers
+    |--------------------------------------------------------------------------
+    */
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | JSON response
+    |--------------------------------------------------------------------------
+    */
+    message: {
+      error:
+        "Too many submissions. Please try again later."
+    }
+  });
+
+
+module.exports =
+  submissionRateLimiter;

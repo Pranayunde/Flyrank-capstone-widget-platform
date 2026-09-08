@@ -1,15 +1,23 @@
 {
   "name": "flyrank-capstone-widget-platform",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "1.1.0",
+  "description": "Embeddable widget and lead capture platform",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "db:init": "node db/init.js"
+    "db:init": "node db/init.js",
+    "db:seed": "node db/seed.js",
+    "test": "node --check server.js && node --check controllers/authController.js && node --check controllers/widgetController.js && node --check controllers/submissionController.js && node --check controllers/dashboardController.js && node --check services/geoService.js && node --check services/sideEffectService.js && node --check public/widget.v1.js"
   },
-  "keywords": [],
+  "keywords": [
+    "nodejs",
+    "express",
+    "postgresql",
+    "widget",
+    "lead-capture"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
