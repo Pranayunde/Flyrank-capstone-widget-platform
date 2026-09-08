@@ -1,0 +1,57 @@
+name: flyrank-lead-capture-platform
+version: 1.0.0
+
+description: >
+A simple embeddable lead-capture widget platform with authentication,
+widget management, public submissions, abuse protection, geo enrichment,
+side effects, persistence and dashboard APIs.
+
+stack:
+backend: Node.js
+framework: Express.js
+database: PostgreSQL
+authentication: JWT
+infrastructure: Docker
+
+features:
+authentication: true
+widget_crud: true
+tenant_isolation: true
+embeddable_widget: true
+public_submissions: true
+validation: true
+rate_limiting: true
+honeypot_spam_protection: true
+geo_fallback: true
+asynchronous_side_effect: true
+dashboard: true
+postgres_persistence: true
+
+endpoints:
+authentication:
+- POST /auth/signup
+- POST /auth/login
+
+widgets:
+- GET /api/widgets
+- GET /api/widgets/:id
+- POST /api/widgets
+- PUT /api/widgets/:id
+- DELETE /api/widgets/:id
+
+public:
+- GET /widgets/:id
+- POST /submissions
+
+dashboard:
+- GET /dashboard/submissions
+- GET /dashboard/stats
+
+health:
+- GET /health/db
+
+non_goals:
+
+* Production-grade email delivery
+* Advanced analytics
+* Complex frontend dashboard
